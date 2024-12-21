@@ -1,103 +1,73 @@
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class Server {
-    private final Map<String,String> login;
-    private final Map<String, Byte[]> dados;
-    private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-    private Lock wl = rwl.writeLock();
-    private Lock rl = rwl.readLock();
-
-    public void put(String key, byte[] value) {
-        wl.lock();
-        try {
-            data.put(key, value);
-        } finally {
-            wl.unlock();
-        }
-    }
-
-    public byte[] get(String key) {
-        rl.lock();
-        try {
-            return data.get(key);
-        } finally {
-            rl.unlock();
-        }
-    }
-
-    public void multiPut(Map<String, byte[]> pairs) {
-        wl.lock();
-        try {
-            data.putAll(pairs);
-        } finally {
-            wl.unlock();
-        }
-    }
-
-    public Map<String, byte[]> multiGet(Set<String> keys) {
-        rl.lock();
-        try {
-            Map<String, byte[]> result = new HashMap<>();
-            for (String key : keys) {
-                if (data.containsKey(key)) {
-                    result.put(key, data.get(key));
-                }
-            }
-            return result;
-        } finally {
-            rl.unlock();
-        }
-    }
-
-
-
-
-    public static void main(String[] args) throws IOException {
+public class Server
+{    public static void main(String[] args) throws IOException
+    {
         ServerSocket ss = new ServerSocket(12345);
-        //TODO: interface aqui
+        ServerOps operator = new ServerOps();           //para usar os métodos que estavam no server
         
-            while(true) {
+            while(true)
+            {
                 Socket clientSocket = ss.accept();
-                Thread t = new Thread(new Worker(clientSocket));
+                TaggedConnection c = new TaggedConnection(clientSocket);
+                Thread t = new Thread(new Worker(clientSocket, operator, c));
                 t.start();
             }
     }
 
-    public static class Worker implements Runnable {
-        Socket socket;
-        private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-        private Lock wl = rwl.writeLock();
-        private Lock rl = rwl.readLock();
+    public static class Worker implements Runnable
+    {
+        private Socket socket;
+        private ServerOps operator;
+        private TaggedConnection c;
 
-        public Worker(Socket clientSocket) {      //constructor não tem void
+        public Worker(Socket clientSocket, ServerOps operator, TaggedConnection c)
+        {
             this.socket = clientSocket;
+            this.operator = operator;
+            this.c = c;
         }
 
         @Override
-        public void run() {
-            try {
-                DataInputStream in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-                DataOutputStream out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+        public void run()
+        {
+            try
+            {
+                //DataInputStream in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                //DataOutputStream out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
-                //TODO: Código lmao
+                Frame f = c.receive();      //recebe os dados que o cliente passa
 
-                in.close();
-                out.close();
+                switch (f.tag) {
+                    case 0:     //* criação de conta
+                        if(operator.addUser(f.data))            //chama a função e mete para lá os dados, neste caso só o login
+                            c.send(0, null);            //creio que se for só uma confirmação então manda null nos dados
+                        else
+                            c.send(99, null);           //se dá erro então manda o 99
+                        break;
+
+                    case 1:     //* login
+                        if(operator.logIn(f.data))
+                            c.send(1, null);            //login bem sucedido
+                        else
+                            c.send(99, null);
+                        break;
+
+                    //TODO: resto dos cases
+
+                    default:
+                        c.send(99, null);               //só para ter um default, dá erro
+                        break;
+                }
+
+                //in.close();
+                //out.close();
                 socket.close();
             }
-            catch(Exception e) {
+            catch(Exception e)
+            {
                 System.out.println(e.getMessage());
             }
         }
