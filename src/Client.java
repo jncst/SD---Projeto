@@ -69,10 +69,11 @@ public class Client {
                                 //E não sei se queres que o server mande tags de volta por estas, atualmente n manda
 
                 case 2:         //este só precisa da key no data
+                                //devolve um frame com o get e a tag3 (mas erros não estão abrangidos)
 
-                case 3:
+                case 3:         //este mandei a especificação no disc mas basicamente, 1 int size map, 1 int size de cada string, 1 int size de cada byte[]
 
-                case 4:
+                case 4:         //especificação do array devolvido é a mesma
 
                 case 5:
                     c.send(6, new byte[0]);

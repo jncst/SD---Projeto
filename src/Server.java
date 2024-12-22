@@ -67,7 +67,21 @@ public class Server
                     case 3:     //* download (get)
                         content = new String(f.data, StandardCharsets.UTF_8);       //aqui n precisa de split
                                                                                     //? content declarado num case funciona neste sem problemas?
-                        operator.get(content);
+                        byte[] getv = operator.get(content);
+                        c.send(3, getv);        //como é get, envia dados
+
+                        break;
+
+                    case 4:     //* multiupload (multiPut)
+                        operator.multiPut(operator.byteArraytoMap(f.data));         //complicado mas pega nos dados, transforma em map e passa à função
+
+                        break;
+                    
+                    case 5:     //* multidownload (multiGet)
+                        c.send(5, operator.multiGetToBytes(operator.multiGet(operator.bytetoSet(f.data))));
+                                    //confuso mas tipo, primeiro faz byteToSet para transformar no set que queremos
+                                    //depois faz a função do multiGet em si
+                                    //depois transforma esse map de volta em byte[] para ser enviado como data
 
                     default:
                         c.send(99, null);               //só para ter um default, dá erro
