@@ -55,19 +55,20 @@ public class Client {
         while (true) {
 
             System.out.println("Digite o número correspondente a operação desejada:\n"
-            + "1 - Upload\n"
-            + "2 - Download\n"
-            + "3 - Multiupload\n"
-            + "4 - Multidownload\n"
-            + "5 - Logout\n");
+            + "1 - Upload\n"                //tag2
+            + "2 - Download\n"              //tag3
+            + "3 - Multiupload\n"           //tag4
+            + "4 - Multidownload\n"         //tag5
+            + "5 - Logout\n");              //tag6
 
             escolha = Integer.parseInt(scan.readLine());
 
             switch(escolha) {
 
-                case 1:
+                case 1:         //!Para funcionar, manda pelo frame primeiro a key + " " + dados em si, como foi feito para login
+                                //E não sei se queres que o server mande tags de volta por estas, atualmente n manda
 
-                case 2:
+                case 2:         //este só precisa da key no data
 
                 case 3:
 

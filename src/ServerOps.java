@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerOps implements ServerItf
 {
-        private Map<String,String> login;       //isto vai ser atualizado aonde?
+        private Map<String,String> login;
         private Map<String, byte[]> dados;
         private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
         private Lock wl = rwl.writeLock();

@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class Server
 {    public static void main(String[] args) throws IOException
@@ -55,7 +56,18 @@ public class Server
                             c.send(99, null);
                         break;
 
-                    //TODO: resto dos cases
+                    case 2:     //* upload (put)
+                        String content = new String(f.data, StandardCharsets.UTF_8);      //transforma o conteudo de byte[] para string
+                        String[] info = content.split(" ", 2);              //parte em duas strings para assim sacar a key
+
+                        operator.put(info[1], info[2].getBytes());      //info[1] é a chave, o resto é o conteudo
+                                                                        //converti de bytes para string para bytes outra vez, mas foi o que pensei
+                        break;
+
+                    case 3:     //* download (get)
+                        content = new String(f.data, StandardCharsets.UTF_8);       //aqui n precisa de split
+                                                                                    //? content declarado num case funciona neste sem problemas?
+                        operator.get(content);
 
                     default:
                         c.send(99, null);               //só para ter um default, dá erro
