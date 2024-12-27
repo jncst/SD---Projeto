@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server
-{    
-    
+{
+
     private static final int MAX_CLIENTS = 1;
     private static final AtomicInteger clientCount = new AtomicInteger(1);//tem que se meter mais um do que se realmente tem (p.e. 1 para quando comeca com 0)
     public static void main(String[] args) throws IOException
@@ -69,7 +69,7 @@ public class Server
                                 System.out.println("fez o registo");           //chama a função e mete para lá os dados, neste caso só o login
                                 c.send(0, null);            //creio que se for só uma confirmação então manda null nos dados
                                 System.out.println("enviou o 0");
-                            } 
+                            }
                             else
                                 c.send(99, null);           //se dá erro então manda o 99
                             break;
@@ -121,7 +121,7 @@ public class Server
                         case 5:     //* multidownload (multiGet)
                             System.out.println("entrou no case 5");
                             c.send (5, operator.multiGetToBytes (operator.multiGet (operator.bytetoSet (f.data))));
-                            System.out.println("enviou o 5");            
+                            System.out.println("enviou o 5");
                                         //confuso mas tipo, primeiro faz byteToSet para transformar no set que queremos
                                         //depois faz a função do multiGet em si
                                         //depois transforma esse map de volta em byte[] para ser enviado como data
@@ -131,6 +131,13 @@ public class Server
                             System.out.println("entrou no case 6");
                             logout = true;
                             break ;
+
+                        case 7 : // caso de conditional get
+                            System.out.println ("entrou no caso 7");
+                            Object[] a = operator.strstrbyteFromByte(f.data);
+                            System.out.println ("key" + (String) a[0] + " keyCond" + (String) a[1] + "valueCond" + (byte[]) a[2]);
+                            c.send (7, operator.getWhen ((String) a[0], (String) a[1], (byte[]) a[2]));
+                            System.out.println("mandei");
 
                         default:
                             c.send(99, null);               //só para ter um default, dá erro

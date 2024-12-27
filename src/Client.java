@@ -10,7 +10,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 public class Client {
-    
+
     public static byte[] listToByteArray(String[] list) {
         int totalSize = Integer.BYTES; // para armazenar o tamanho da lista
 
@@ -69,7 +69,7 @@ public class Client {
                 case 5: // Caso de multiGet ou outra operação
                     System.out.println("Resposta para operação 5:");
                     Map<String, byte[]> resultMap = so.byteArraytoMap(f.data);
-                    resultMap.forEach((key, value) -> 
+                    resultMap.forEach((key, value) ->
                         System.out.println("Chave: " + key + " | Valor: " + new String(value, StandardCharsets.UTF_8))
                     );
                     break;
@@ -78,7 +78,13 @@ public class Client {
                     System.out.println("Resposta para operação 6:");
                     // Lógica para caso 6
                     break;
-                
+
+                case 7 : // Conditional download
+                    System.out.println("Resposta para operação 7:");
+                    System.out.println(new String(f.data, StandardCharsets.UTF_8));
+                    break;
+
+
                 case 99: // Caso de erro
                     System.err.println("Erro recebido do servidor.");
                     break;
@@ -94,8 +100,34 @@ public class Client {
     t.start();
     }
 
+    public static byte[] strstrbyteToByte (String str1, String str2, byte[] byteArray)
+    {
+        // Calculo total bytes
+        int totalSize = Integer.BYTES + str1.getBytes (StandardCharsets.UTF_8).length +
+                        Integer.BYTES + str2.getBytes (StandardCharsets.UTF_8).length +
+                        Integer.BYTES + byteArray.length;
+
+        ByteBuffer buffer = ByteBuffer.allocate (totalSize);
+
+        // Serializar String e mandar
+        byte[] str1Bytes = str1.getBytes (StandardCharsets.UTF_8);
+        buffer.putInt (str1Bytes.length);  // Poe tamenho
+        buffer.put (str1Bytes);            // Poe conteudo
+
+        // Repete
+        byte[] str2Bytes = str2.getBytes (StandardCharsets.UTF_8);
+        buffer.putInt (str2Bytes.length);
+        buffer.put (str2Bytes);
+
+        // Aqui e byte por isso no serealizations
+        buffer.putInt (byteArray.length);
+        buffer.put (byteArray);
+
+        return buffer.array ();
+    }
+
     public static void main(String[] args) throws IOException {
-        
+
         Socket s = new Socket("localhost", 12345);
         TaggedConnection c = new TaggedConnection(s);
 
@@ -117,7 +149,7 @@ public class Client {
         + "2 - Registar novo usuário\n");
 
         int escolha = Integer.parseInt(scan.readLine());
-        
+
         Boolean sucesso = false;
 
         while (!sucesso) {
@@ -155,30 +187,31 @@ public class Client {
         while (true) {
 
             System.out.println("Digite o número correspondente a operação desejada:\n"
-            + "1 - Upload\n"                //tag2
-            + "2 - Download\n"              //tag3
-            + "3 - Multiupload\n"           //tag4
-            + "4 - Multidownload\n"         //tag5
-            + "5 - Logout\n");              //tag6
+            + "1 - Upload\n"                    //tag2
+            + "2 - Download\n"                  //tag3
+            + "3 - Multiupload\n"               //tag4
+            + "4 - Multidownload\n"             //tag5
+            + "5 - Logout\n"                    //tag6
+            + "6 - Conditional Download\n");    //tag7
 
             escolha = Integer.parseInt(scan.readLine());
 
             switch(escolha) {
 
                 case 1:
-                    
+
                     System.out.println("Digite a chave:");
                     String key = scan.readLine();
                     System.out.println("Digite o conteúdo:");
                     String content = scan.readLine();
                     byte[] data = (key + " " + content).getBytes();
                     c.send(2, data);
-                    break;            
+                    break;
                                 //!Para funcionar, manda pelo frame primeiro a key + " " + dados em si, como foi feito para login
                                 //E não sei se queres que o server mande tags de volta por estas, atualmente n manda
 
-                case 2:         
-                    System.out.println("Digite a chave:");  
+                case 2:
+                    System.out.println("Digite a chave:");
                     key = scan.readLine();
                     data = key.getBytes();
                     c.send(3, data);
@@ -193,7 +226,7 @@ public class Client {
                     //     } catch (IOException e) {
                     //         e.printStackTrace();
                     //     }
-                    // });              
+                    // });
                     // t.start();
                     handleServerResponse(c);
                     break;
@@ -231,7 +264,7 @@ public class Client {
                                 //este é um pouco mais complicado, mas basicamente é um loop que vai pedindo chaves e conteúdos
                                 //e vai adicionando ao array de bytes, que é o que é mandado
                                 //não sei se queres que o server mande tags de volta por estas, atualmente n manda
-                
+
                 case 4:         //especificação do array devolvido é a mesma
 
                     System.out.println("Digite o número de chaves:");
@@ -263,7 +296,7 @@ public class Client {
                     //     } catch (IOException e) {
                     //         e.printStackTrace();
                     //     }
-                    // });              
+                    // });
                     // t.start();
                     handleServerResponse(c);
                     break;
@@ -275,11 +308,25 @@ public class Client {
                     c.send(6, new byte[0]);
                     System.out.println("Logout efetuado com sucesso!");
                     break;
+
+                case 6: // Conditional Download
+                    System.out.println ("Digite a chave do valor que pretende ler:");
+                    String a_key = scan.readLine ();
+                    System.out.println ("Digite a chave do valor conditional:");
+                    String a_keyCond = scan.readLine ();
+                    System.out.println ("Digite o valor conditional:"); // suponho que este valor tenha de ser igual ao returnado pelo get da chave condicional
+                    String a_valueCond_str = scan.readLine ();
+                    byte[] a_valueCond = a_valueCond_str.getBytes ();
+
+                    byte[] a_data = strstrbyteToByte(a_key, a_keyCond, a_valueCond);
+                    c.send (7, a_data);
+                    handleServerResponse(c);
+                    break;
             }
 
-        } 
+        }
 
-        
+
 
     }
 }
