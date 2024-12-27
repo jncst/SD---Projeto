@@ -21,8 +21,13 @@ public class TaggedConnection {
         write_lock.lock();
         try {
             this.out.writeInt(tag);
-            this.out.writeInt(data.length);
-            this.out.write(data);
+            if (data != null) {
+                this.out.writeInt(data.length);
+                this.out.write(data);
+            }
+            else {
+                this.out.writeInt(0);
+            }
             this.out.flush();
         } finally {
             write_lock.unlock();

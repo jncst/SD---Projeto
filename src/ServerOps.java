@@ -1,5 +1,6 @@
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,8 +10,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerOps implements ServerItf
 {
-        private Map<String,String> login;
-        private Map<String, byte[]> dados;
+        private Map<String,String> login = new HashMap<>();        //mapa para guardar os logins
+        private Map<String, byte[]> dados = new HashMap<>();       //mapa para guardar os dados
         private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
         private Lock wl = rwl.writeLock();
         private Lock rl = rwl.readLock();
@@ -20,6 +21,7 @@ public class ServerOps implements ServerItf
         wl.lock();
         try {
             dados.put(key, value);
+            System.out.println("meteu o valor");
         } finally {
             wl.unlock();
         }
@@ -37,44 +39,50 @@ public class ServerOps implements ServerItf
 
     @Override
     public void multiPut(Map<String, byte[]> pairs) {
+        System.out.println("fodasse");
         wl.lock();
+        System.out.println("fez lock");
         try {
+            System.out.println("multiPut: Inserindo " + pairs.size() + " pares.");
             dados.putAll(pairs);
+            System.out.println("multiPut: Inseriu " + pairs.size() + " pares.");
         } finally {
             wl.unlock();
         }
     }
 
-        @Override
-        public Map<String, byte[]> byteArraytoMap(byte[] data)      //para a multiput
-        {
-                Map<String, byte[]> result = new HashMap<>();
-                ByteBuffer buffer = ByteBuffer.wrap(data);
+    @Override
+public Map<String, byte[]> byteArraytoMap(byte[] data) {
+    Map<String, byte[]> result = new HashMap<>();
+    // System.out.println("criou o mapa");
+    // System.out.println("byteArraytoMap: Dados recebidos: " + Arrays.toString(data));
+    ByteBuffer buffer = ByteBuffer.wrap(data);
+    // System.out.println("criou o buffer");
 
-            int mapSize = buffer.getInt();              //lê o número de elementos do mapa
+    int mapSize = buffer.getInt(); // lê o número de elementos do mapa
+    // System.out.println("byteArraytoMap: Número de elementos no mapa: " + mapSize);
 
-            for (int i = 0; i < mapSize; i++)
-            {
-                int keyLength = buffer.getInt();                //lê o tamanho da chave
+    for (int i = 0; i < mapSize; i++) {
+        int keyLength = buffer.getInt(); // lê o tamanho da chave
+        // System.out.println("byteArraytoMap: Tamanho da chave: " + keyLength);
 
-                byte[] keyBytes = new byte[keyLength];          //lê bites da chave parra array de tamanho certo, converte depois
-                buffer.get(keyBytes);                           //guarda os bites lidos nesse array
-                String key = new String(keyBytes, StandardCharsets.UTF_8);
+        byte[] keyBytes = new byte[keyLength]; // lê bytes da chave para array de tamanho certo, converte depois
+        // System.out.println("antes do get");
+        buffer.get(keyBytes); // guarda os bytes lidos nesse array
+        String key = new String(keyBytes, StandardCharsets.UTF_8);
+        // System.out.println("byteArraytoMap: Chave lida: " + key);
 
-                int valueLength = buffer.getInt();              //lê o tamanho do array de bytes associado
+        int valueLength = buffer.getInt(); // lê o tamanho do array de bytes associado
+        // System.out.println("byteArraytoMap: Tamanho do valor: " + valueLength);
 
-                byte[] valueBytes = new byte[valueLength];      //lê os bytes associados e converte para Byte[]
-                buffer.get(valueBytes);
-                byte[] value = new byte[valueLength];
-                for (int j = 0; j < valueLength; j++) {
-                    value[j] = valueBytes[j];
-                }
+        byte[] valueBytes = new byte[valueLength]; // lê os bytes associados e converte para byte[]
+        buffer.get(valueBytes);
+        result.put(key, valueBytes); // adiciona ao mapa
+        // System.out.println("byteArraytoMap: Valor lido para chave " + key + ": " + Arrays.toString(valueBytes));
+    }
 
-                result.put(key, value);                 //adiciona ao mapa
-            }
-
-            return result;
-        }
+    return result;
+}
 
     @Override
     public Map<String, byte[]> multiGet(Set<String> keys) {
@@ -150,12 +158,14 @@ public class ServerOps implements ServerItf
         wl.lock();
         try
         {
+            System.out.println("entrou no addUser");
             String content = new String(data, StandardCharsets.UTF_8);      //transforma o conteudo de byte[] para string
+            System.out.println(content);
             String[] info = content.split(" ", 2);              //parte em duas strings
 
-            if(login.get(info[1]) == null)
+            if(login.get(info[0]) == null)
             {
-                login.put(info[1], info[2]);        //username é a chave, password é o valor
+                login.put(info[0], info[1]);        //username é a chave, password é o valor
                 return true;
             }
             else
@@ -177,7 +187,7 @@ public class ServerOps implements ServerItf
             String content = new String(data, StandardCharsets.UTF_8);      //transforma o conteudo de byte[] para string
             String[] info = content.split(" ", 2);              //parte em duas strings
 
-            if(login.get(info[1]) == info[2])       //verificar se o que está guardado no map é igual ao que foi fornecido
+            if(login.get(info[0]) == info[1])       //verificar se o que está guardado no map é igual ao que foi fornecido
                 return true;
             else
                 return false;
