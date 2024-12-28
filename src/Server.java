@@ -13,7 +13,7 @@ public class Server
     public static void main(String[] args) throws IOException
     {
         ServerSocket ss = new ServerSocket(12345);
-        ServerOps operator = new ServerOps();           //para usar os métodos que estavam no server
+        ServerItf operator = new ServerOps();           //para usar os métodos que estavam no server
 
         while(true)
         {
@@ -36,10 +36,10 @@ public class Server
     public static class Worker implements Runnable
     {
         private Socket socket;
-        private ServerOps operator;
+        private ServerItf operator;
         private TaggedConnection c;
 
-        public Worker(Socket clientSocket, ServerOps operator, TaggedConnection c)
+        public Worker(Socket clientSocket, ServerItf operator, TaggedConnection c)
         {
             this.socket = clientSocket;
             this.operator = operator;
@@ -53,8 +53,6 @@ public class Server
             Boolean logout = false;
             try
             {
-                //DataInputStream in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-                //DataOutputStream out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 System.out.println("entrou no worker");
                 while (!logout)
                 {
