@@ -26,6 +26,7 @@ public class ServerOps implements ServerItf
             dados.put(key, value);
             System.out.println("meteu o valor");
             cond.signalAll();
+            System.out.println("signal all");
         } finally {
             wl.unlock();
         }
@@ -56,6 +57,8 @@ public class ServerOps implements ServerItf
         }
     }
 
+    // chave abc  conteudo chave                              chave
+
     @Override
     public byte[] getWhen (String key, String keyCond, byte[] valueCond)
     {
@@ -63,10 +66,10 @@ public class ServerOps implements ServerItf
         try
         {
             // while (dados.get (keyCond) != valueCond)
-            while (new String (dados.get (keyCond), StandardCharsets.UTF_8).equals (new String(valueCond, StandardCharsets.UTF_8)))
+            while (! (new String (dados.get (keyCond), StandardCharsets.UTF_8)).equals (new String(valueCond, StandardCharsets.UTF_8)))
             {
                 System.out.println (" keyCond data: " + dados.get (keyCond) + " valueCond: " + valueCond);
-                System.out.println ("Com stringssssssssssss keyCond data: " + new String(dados.get (keyCond), StandardCharsets.UTF_8) + " valueCond: " + new String(valueCond, StandardCharsets.UTF_8));
+                System.out.println ("Convertido para Strings keyCond data: {" + (new String (dados.get (keyCond), StandardCharsets.UTF_8)) + "}  valueCond: {" + (new String(valueCond, StandardCharsets.UTF_8)) + "}");
                 cond.await ();
             }
             System.out.println("passei");

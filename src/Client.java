@@ -54,50 +54,51 @@ public class Client {
         return buffer.array();
     }
 
-    private static void handleServerResponse(TaggedConnection c) {
-    Thread t = new Thread(() -> {
-        Frame f;
-        ServerOps so = new ServerOps();
-        try {
-            f = c.receive(); // Recebe o Frame do servidor
-            switch (f.tag) {
-                case 3: // Caso de resposta específica para operação 4
-                    System.out.println("Resposta para operação 4:");
-                    System.out.println(new String(f.data, StandardCharsets.UTF_8));
-                    break;
+    private static void handleServerResponse(TaggedConnection c)
+    {
+        Thread t = new Thread(() -> {
+            Frame f;
+            ServerOps so = new ServerOps();
+            try {
+                f = c.receive(); // Recebe o Frame do servidor
+                switch (f.tag) {
+                    case 3: // Caso de resposta específica para operação 4
+                        System.out.println("Resposta para operaçao 4:");
+                        System.out.println(new String(f.data, StandardCharsets.UTF_8));
+                        break;
 
-                case 5: // Caso de multiGet ou outra operação
-                    System.out.println("Resposta para operação 5:");
-                    Map<String, byte[]> resultMap = so.byteArraytoMap(f.data);
-                    resultMap.forEach((key, value) ->
-                        System.out.println("Chave: " + key + " | Valor: " + new String(value, StandardCharsets.UTF_8))
-                    );
-                    break;
+                    case 5: // Caso de multiGet ou outra operação
+                        System.out.println("Resposta para operaçao 5:");
+                        Map<String, byte[]> resultMap = so.byteArraytoMap(f.data);
+                        resultMap.forEach((key, value) ->
+                            System.out.println("Chave: " + key + " | Valor: " + new String(value, StandardCharsets.UTF_8))
+                        );
+                        break;
 
-                case 6: // Exemplo para um novo caso
-                    System.out.println("Resposta para operação 6:");
-                    // Lógica para caso 6
-                    break;
+                    case 6: // Exemplo para um novo caso
+                        System.out.println("Resposta para operaçao 6:");
+                        // Lógica para caso 6
+                        break;
 
-                case 7 : // Conditional download
-                    System.out.println("Resposta para operação 7:");
-                    System.out.println(new String(f.data, StandardCharsets.UTF_8));
-                    break;
+                    case 7 : // Conditional download
+                        System.out.println("Resposta para operaçao 7 (Conditional Download):");
+                        System.out.println(new String(f.data, StandardCharsets.UTF_8));
+                        break;
 
 
-                case 99: // Caso de erro
-                    System.err.println("Erro recebido do servidor.");
-                    break;
-                default: // Caso de erro ou tag não reconhecida
-                    System.err.println("Tag desconhecida recebida: " + f.tag);
-                    System.err.println("Dados: " + new String(f.data, StandardCharsets.UTF_8));
-                    break;
+                    case 99: // Caso de erro
+                        System.err.println("Erro recebido do servidor.");
+                        break;
+                    default: // Caso de erro ou tag não reconhecida
+                        System.err.println("Tag desconhecida recebida: " + f.tag);
+                        System.err.println("Dados: " + new String(f.data, StandardCharsets.UTF_8));
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    });
-    t.start();
+        });
+        t.start();
     }
 
     public static byte[] strstrbyteToByte (String str1, String str2, byte[] byteArray)
@@ -135,7 +136,7 @@ public class Client {
         if (verificacao.tag == 0 && new String (verificacao.data, StandardCharsets.UTF_8).equals("Conexão aceita")) {
             System.out.println("Conexão estabelecida com sucesso!");
         }
-        else {
+        else{
             System.out.println("Conexão recusada pelo servidor.");
             s.close();
             return;

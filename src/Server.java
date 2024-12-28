@@ -134,10 +134,23 @@ public class Server
 
                         case 7 : // caso de conditional get
                             System.out.println ("entrou no caso 7");
-                            Object[] a = operator.strstrbyteFromByte(f.data);
-                            System.out.println ("key" + (String) a[0] + " keyCond" + (String) a[1] + "valueCond" + (byte[]) a[2]);
-                            c.send (7, operator.getWhen ((String) a[0], (String) a[1], (byte[]) a[2]));
-                            System.out.println("mandei");
+                            Thread t = new Thread (() ->
+                                {
+                                    try
+                                    {
+                                        Object[] a = operator.strstrbyteFromByte (f.data);
+                                        c.send (7, operator.getWhen ((String) a[0], (String) a[1], (byte[]) a[2]));
+                                    }
+                                    catch (IOException e)
+                                    {
+                                        System.out.println ("Error: Couldn't send response message back to client");
+                                    }
+
+                                }
+                            );
+                            t.start();
+                            System.out.println("passei do ponto que parava");
+                            break;
 
                         default:
                             c.send(99, null);               //só para ter um default, dá erro
